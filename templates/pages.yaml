@@ -1,13 +1,14 @@
-# 页面与语义元素名。
+# Pages and semantic element names.
 #
-# scenes.yaml 只引用名字（el），不写选择器 —— 站点改版时只改这里，
-# 分镜剧本完全不用动。多写一条可兜底，按顺序尝试。
+# scenes.yaml only references the names (el), never the selectors, so a site
+# redesign touches this file alone and the storyboard is untouched.
+# A list is allowed: candidates are tried in order, which is a cheap fallback.
 
 pages:
   home:
     url: index.html
     elements:
       primary_button:
-        - 'button:has-text("开始") '
+        - 'button[type="submit"]'
         - 'button[class*="primary"]'
-      search_input: 'input[placeholder*="搜索"]'
+      search_input: 'input[placeholder*="Search"]'

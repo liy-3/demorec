@@ -114,3 +114,24 @@ def test_wait_until_terminates_without_any_frames(tmp_path):
     s._tick = lambda dt=0.05: _t.sleep(min(dt, 0.01))
     s.wait_until(0.05)        # would hang with a frame-based clock
     assert s.elapsed() >= 0.05
+
+def test_cli_record_passes_scene_names_through():
+    """Regression: demorec.py injected --all unconditionally, so a scene named on
+    the command line was silently ignored and every scene was recorded."""
+    src = open(os.path.join(SCRIPTS, "demorec.py"), encoding="utf-8").read()
+    assert "run.main([project, '--all']" not in src, "record must not force --all"
+    assert "run.main([project, '--dry', '--all']" not in src, "dry must not force --all"
+    assert "run.main([project, '--dry'] + rest)" in src
+    assert "run.main([project] + rest)" in src
+
+
+def test_scene_selection_rule():
+    """The rule run.py implements: named scenes filter, --all overrides, none means all."""
+    scenes = ["s1", "s2"]
+
+    def select(only, argv):
+        return [s for s in scenes if not only or s in only or "--all" in argv]
+
+    assert select(None, []) == ["s1", "s2"]
+    assert select(["s2"], []) == ["s2"]
+    assert select(["s2"], ["--all"]) == ["s1", "s2"]

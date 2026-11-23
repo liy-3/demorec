@@ -1,4 +1,4 @@
-# 公开示例剧本 —— 纯 YAML。
+# Public example storyboard — pure YAML.
 
 scenes:
   - id: s1_add

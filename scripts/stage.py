@@ -181,7 +181,7 @@ class Stage:
         self.browser = self.pw.chromium.launch(**launch)
         self.ctx = self.browser.new_context(
             viewport={'width': self.view_w, 'height': self.view_h},
-            device_scale_factor=1, locale=self.cfg.get('locale', 'zh-CN'),
+            device_scale_factor=1, locale=self.cfg.get('locale', 'en-US'),
             ignore_https_errors=True)
         self.ctx.add_init_script(CURSOR_JS)
         hide = self.cfg.get('mask', {}).get('hide_text') or []

@@ -1,74 +1,114 @@
-# 踩坑清单
+# Pitfall list
 
-每条都带症状，便于从现象反查。
+Each entry leads with the symptom, so you can start from what you are seeing.
 
-## 1. 录制几十秒后一帧都没有
+## 1. No frames after a few seconds of recording
 
-**症状**：`[rec] ... frames=0`，或 `screencast produced no frames`。
+**Symptom**: `[rec] ... frames=0`, or `screencast produced no frames`.
 
-**原因**：Playwright **同步 API** 只有在它驱动事件循环时才派发 CDP 事件。
-在场景里写 `time.sleep()` 会让 `Page.screencastFrame` 彻底停摆。
+**Cause**: the Playwright **sync** API dispatches CDP events only while it is
+driving the event loop. A `time.sleep()` inside a scene stalls
+`Page.screencastFrame` completely.
 
-**做法**：所有等待走 `Stage._tick()` / `wait_until()` / `sleep()`，它们内部用
-`page.wait_for_timeout`。不要给 stage 方法加裸 `time.sleep`。
+**Fix**: every wait goes through `Stage._tick()` / `wait_until()` / `sleep()`,
+which call `page.wait_for_timeout` internally. Never add a bare `time.sleep` to a
+stage method.
 
-## 2. 成片音画错位几十秒
+## 2. Picture and narration drift apart
 
-**症状**：画面 520 秒、音轨 491 秒，越到后面越不同步。
+**Symptom**: video 520 s, audio track 491 s, and the gap grows towards the end.
 
-**原因**：用 ffmpeg concat 直接拼**混合格式**音频（24k 单声道 mp3 + 48k 立体声 wav），
-时间戳解析错乱，每幕音轨被截到约 6 秒。
+**Cause**: concatenating **mixed-format** audio with the ffmpeg concat demuxer
+(24 kHz mono mp3 next to 48 kHz stereo wav) corrupts timestamps; each scene track
+was cut to about 6 s.
 
-**做法**：`scripts/audio.py` 先把每段转成统一 48k/立体声 wav 再拼，并把每幕音轨
-长度强制对齐到录屏时长（尾部补静音，或压缩句间停顿）。
+**Fix**: `scripts/audio.py` transcodes every clip to a uniform 48 kHz stereo wav
+before concatenating, then forces each scene track to the recorded video length
+(padding the tail, or tightening the gaps between lines).
 
-## 3. 打码后仍能看清文字轮廓
+## 3. The mask still shows the glyph outlines underneath
 
-**症状**：色块盖住了，但底下字形隐约可辨。
+**Symptom**: the box covers the area, but the text is faintly legible.
 
-**原因**：填充色带了 alpha（如 `0xEEF2FA@0.97`）。
+**Cause**: the fill colour carries alpha (e.g. `0xEEF2FA@0.97`).
 
-**做法**：`t: fill` 且颜色不带透明度。覆盖率宁可大几像素，也不要刚好卡边。
+**Fix**: `t=fill` and a colour with no transparency. Prefer a few pixels of
+overshoot to an exact fit.
 
-## 4. 页脚水印在每一帧位置都不一样
+## 4. A footer watermark sits somewhere different in every frame
 
-**症状**：固定打码框有时盖住、有时盖不住。
+**Symptom**: a fixed mask box covers it in some frames and not others.
 
-**原因**：水印随内容滚动漂移。
+**Cause**: the watermark moves with the scrolling content.
 
-**做法**：用 `mask.hide_text` 在运行时隐藏（注入脚本按关键字匹配文本节点），
-不要试图用固定坐标。
+**Fix**: hide it at runtime with `mask.hide_text` (an injected script matches text
+nodes by keyword). A fixed coordinate cannot work.
 
-## 5. 标签页点进去是一片空白
+## 5. A panel renders empty after you click into it
 
-**症状**：切到某个 tab，画面全空，旁白却在说"系统生成了……"。
+**Symptom**: you switch to a tab and the frame is blank, while the narration talks
+about content that should be there.
 
-**原因**：这类面板默认无数据，需要点「生成 / 导入 / 开始筛查」才会渲染。
+**Cause**: such panels start empty by design and render only after they are told
+to load — a "generate", "import" or "run" control has to be triggered first.
 
-**做法**：剧本里把触发按钮也演出来。`dry` 之后抽一帧看，不要只看选择器能命中。
+**Fix**: put the triggering click in the storyboard. After `dry`, extract a frame
+and look at it; do not rely on selectors merely resolving.
 
-## 6. 智能问答答"资料不足"
+## 6. A generated answer comes back as "not enough information"
 
-**症状**：演示问答环节，助手回答"现有资料不足，无法确认"。
+**Symptom**: the demo asks a system a question and it answers that it cannot
+confirm anything from the available material.
 
-**原因**：知识库命中率有限，很多自然提问拿不到答案。
+**Cause**: retrieval over a knowledge base has a hit rate; plenty of natural
+phrasings find nothing.
 
-**做法**：录制前把候选问题逐个试一遍，挑**能给出带数字实质答案**的那一句。
+**Fix**: try candidate questions before recording and pick one that produces a
+substantive answer, ideally with a number or a concrete value in it. Do not record
+a question whose answer you have not seen.
 
-## 7. `dry` 通过了，正式录制却失败
+## 7. `dry` passed but the real recording fails
 
-**症状**：干跑全部通过，实跑某步超时。
+**Symptom**: the dry run completes, then a step times out during recording.
 
-**原因**：多半是动画/加载时序差异，或该元素在录制的滚动位置下不可见。
+**Cause**: usually animation or loading timing, or the element not being visible
+at the scroll position the recording reaches.
 
-**做法**：`dry` 已经会真实点击推进 UI；若仍偶发，给该步加 `after` 或在该步前
-补一次 `scroll`，把目标滚进视口。
+**Fix**: `dry` already clicks through for real. If a step is still flaky, add
+`after` to that step, or insert a `scroll` before it to bring the target into view.
 
-## 8. 画面里出现浏览器边框、地址栏、任务栏
+## 8. Browser chrome, address bar or taskbar in the frame
 
-**症状**：成片边缘有系统 UI。
+**Symptom**: system UI around the edge of the output.
 
-**原因**：用了桌面抓屏（gdigrab / OBS 显示器采集）。
+**Cause**: desktop capture (gdigrab, OBS display capture).
 
-**做法**：本工具用 CDP 抓渲染帧，天然不含这些。若换成桌面抓屏，务必裁剪到页面区域，
-并且注意系统缩放（高 DPI 下窗口尺寸与 CSS 像素不一致）。
+**Fix**: this tool captures rendered frames over CDP, so those never appear. If
+you switch to desktop capture, crop to the page area and account for display
+scaling (window size and CSS pixels diverge under high DPI).
+
+## 9. A static page hangs the recording clock
+
+**Symptom**: `wait_until()` never returns and the recording stalls, typically on a
+page with no animation and no ticking clock.
+
+**Cause**: CDP screencast only emits frames when the picture changes. On a still
+page the frames stop, so the timestamp of the last frame freezes — and progress
+measured from frame timestamps can never reach the target time.
+
+**Fix**: recording progress is measured on the **wall clock** (`Stage.elapsed()`,
+corrected by `frame_offset` once at startup). Frame spacing still uses the browser
+clock, because only its relative deltas are accurate. A page that repaints its
+clock every second never exposes this; a static page fails immediately.
+
+## 10. The finished video is shorter than the recording
+
+**Symptom**: `recorded=120.4s` but `video=117.9s`, and the mismatch warning fires
+on stop.
+
+**Cause**: the tail of a scene is static, so no frames arrive after the last
+change and the final frame would otherwise end early.
+
+**Fix**: this is handled — `stop()` records `stop_offset` and extends the last
+frame's duration to the real end. A warning means the gap exceeds 0.5 s, so look
+for genuinely idle time or a scene that never reached `stop`.

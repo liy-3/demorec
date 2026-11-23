@@ -95,7 +95,7 @@ def main(argv):
     with open(os.path.join(workdir, 'scenes.yaml'), encoding='utf-8') as f:
         scenes = yaml.safe_load(f)['scenes']
 
-    voice = cfg.get('voice', {}).get('name', 'zh-CN-YunxiNeural')
+    voice = cfg.get('voice', {}).get('name', 'en-US-AndrewNeural')
     rate = str(cfg.get('voice', {}).get('rate', '+8%'))
     pace = cfg.get('pacing', {})
     lead = float(pace.get('lead_in', 0.8))

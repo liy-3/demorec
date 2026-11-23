@@ -1,19 +1,22 @@
-# demorec project configuration — this is the file you edit per project.
-# Everything here has a default; start with project + root_url + a page.
+# demorec project configuration — the file you edit per project.
+# Every key has a default; start with project + root_url + one page.
 
-project: <项目名，会用于日志与输出>
+project: <project name, used in logs and output>
 
-# 录制画面。改这里会同时作用于录制与成片，不需要碰任何脚本。
+# Recorded canvas. Changing this affects recording and the rendered file together;
+# no script needs to change.
 viewport: [1920, 1080]
 fps: 30
 jpeg_quality: 86
-locale: zh-CN
+locale: en-US
 
-# 留空用 Playwright 自带 Chromium；装了 Chrome 可填 chrome，观感更接近真实。
+# Leave empty to use Playwright's bundled Chromium; set "chrome" to use a local
+# Chrome install, which looks slightly closer to a real session.
 browser_channel: chrome
 
-# 页面就绪判定：正文短于此阈值、或仍含 ready_gone_text 时继续等待。
-# 有品牌加载动画的站点，把动画文字填进 ready_gone_text。
+# Page-ready detection: keep waiting while the body text is shorter than a
+# threshold, or while it still contains ready_gone_text. If the site has a
+# branded loading animation, put its text in ready_gone_text.
 ready_timeout: 110
 ready_settle: 1.2
 ready_gone_text: ""
@@ -21,8 +24,8 @@ ready_gone_text: ""
 find_timeout: 9
 
 voice:
-  name: zh-CN-YunxiNeural
-  rate: "+8%"
+  name: en-US-AndrewNeural
+  rate: "+5%"
 
 pacing:
   lead_in: 0.80
@@ -30,10 +33,11 @@ pacing:
   tail: 1.60
 
 mask:
-  # [x, y, w, h] — 用 demorec.py probe 探测后人工确认；填充必须完全不透明
+  # [x, y, w, h] — probe with demorec.py probe, then confirm by eye.
+  # The fill must be fully opaque; any alpha leaks the glyph outlines.
   boxes: []
   color: "0xEEF2FA"
-  # 随滚动漂移的水印，用运行时隐藏而不是固定打码框
+  # Watermarks that move with scrolling: hide at runtime, do not use a fixed box.
   hide_text: []
 
 root_url: https://example.com/app/

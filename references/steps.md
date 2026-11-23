@@ -1,40 +1,58 @@
-# Step 参考
+# Step reference
 
-每条 step 是一个单词 + 可选修饰。整条剧本由 `scripts/run.py` 解释，
-新增语法必须同时改解释器与本文档。
+Every step is one key plus optional modifiers. `scripts/run.py` interprets the whole
+storyboard; when you add syntax, change the interpreter and this file together.
 
-| 步骤 | 作用 | 修饰参数 |
+| Step | Effect | Modifiers |
 |---|---|---|
-| `goto: <page>` | 打开 `pages.yaml` 里的页面并等待就绪 | — |
-| `start` | 开始 CDP 抓帧录制 | — |
-| `stop` | 停止录制并编码为 mp4 | — |
-| `say: N` / `say: [N, extra]` | 等到本幕第 N 句旁白念完（可再加 extra 秒） | `extra` |
-| `wait: T` | 等到录制开始后第 T 秒（绝对时间） | — |
-| `sleep: S` | 相对等待 S 秒（按录制时钟） | — |
-| `move: <target>` | 光标平滑移动过去 | `dur` |
-| `click: <target>` | 移动 → 停顿 → 按下 → 抬起 | `hover` `after` `dur` |
-| `hover: <target>` | 移动过去并停留 | `hold` `dur` |
-| `type: <text>` | 真人节奏输入到当前焦点 | `cps` |
-| `key: <combo>` | 按键，如 `Enter` / `Control+A` | — |
-| `scroll: <dy>` | 平滑滚轮滚动（正数向下） | `steps` `settle` |
-| `shot: <name>` | 存一张 PNG 到 `shots/` 供人工复核 | — |
-| `for_each: {over: [...], do: [...]}` | 对一组坐标循环执行子步骤 | — |
+| `goto: <page>` | open a page from `pages.yaml` and wait for it to be ready | — |
+| `start` | begin CDP frame capture | — |
+| `stop` | stop capture, encode the scene to mp4 | — |
+| `say: N` / `say: [N, extra]` | block until narration line N of this scene has finished, plus `extra` seconds | `extra` |
+| `wait: T` | block until t = T seconds of the recording (absolute) | — |
+| `sleep: S` | block for S seconds on the recording clock (relative) | `seconds` |
+| `move: <target>` | glide the synthetic cursor there | `dur` |
+| `click: <target>` | move → settle → press → release | `hover` `after` `dur` |
+| `hover: <target>` | move there and hold | `hold` `dur` |
+| `type: <text>` | type into the focused field at a human pace | `cps` |
+| `key: <combo>` | press a key or chord, e.g. `Enter`, `Control+A` | — |
+| `scroll: <dy>` | smooth wheel scroll, positive scrolls down | `steps` `settle` |
+| `shot: <name>` | save a PNG to `shots/` for manual review | — |
+| `for_each: {over: [...], do: [...]}` | run sub-steps once per item in `over` | — |
 
-## 目标写法
+Step modifiers are ordinary siblings of the step key, e.g.
+`- click: {el: save_button, after: 1.2}`.
 
-优先级从高到低：
-
-1. `{el: name}` —— `pages.yaml` 里的语义名。**首选**，站点改版只改选择器表。
-2. `{sel: "css 或 playwright 选择器"}` —— 一次性、不值得命名的临时目标。
-3. `{at: [x, y]}` —— 画面绝对像素。**最后手段**：布局一变就失效，也是
-   "换一个项目就得重写剧本" 的主要成因。
-
-## 为什么要用 say 而不是秒数
+`start` and `stop` are the only steps that may be written bare, because in YAML a
+bare scalar is a string rather than a mapping:
 
 ```yaml
-- click: {el: role_button}
-- say: 3          # 而不是 - sleep: 7.2
+- start            # same as - start: null
+- say              # invalid: say needs an index
 ```
 
-旁白改成更长的句子时，`say` 会自动跟着变；`sleep: 7.2` 会让动作和声音错位，
-而错位在成片里才看得出来，返工成本很高。
+## Targets
+
+Priority, highest first:
+
+1. `{el: name}` — a semantic name from `pages.yaml`. **Preferred**: when the site
+   is redesigned, only the selector table changes.
+2. `{sel: "css or playwright selector"}` — a one-off target not worth naming.
+3. `{at: [x, y]}` — absolute pixel in the frame. **Last resort**: it breaks as soon
+   as the layout shifts, and it is the main reason a second project feels like
+   rewriting the storyboard.
+
+A bare `[x, y]` is accepted as shorthand for `{at: [x, y]}`, so `- move: [960, 480]`
+works. A target must contain **exactly one** of `el` / `sel` / `at`; `lint` reports
+anything else.
+
+## Why `say` instead of seconds
+
+```yaml
+- click: {el: submit_button}
+- say: 3          # instead of - sleep: 7.2
+```
+
+When a narration line is rewritten, `say` follows it automatically. `sleep: 7.2`
+silently desynchronises the action from the voice, and the mismatch only shows up
+in the rendered file, where fixing it is expensive.

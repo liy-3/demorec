@@ -5,7 +5,7 @@
     python scripts/demorec.py probe   <project>            # suggest brand mask boxes
     python scripts/demorec.py dry     <project> [scene...] # validate selectors, no recording
     python scripts/demorec.py tts     <project> [--force]  # synthesize narration -> timing.json
-    python scripts/demorec.py record  <project> [scene...] # record scenes (--all for every scene)
+    python scripts/demorec.py record  <project> [scene...] # record scenes (all when none named)
     python scripts/demorec.py audio   <project>            # align narration to recordings
     python scripts/demorec.py build   <project>            # mask + concat + mux -> deliverable
     python scripts/demorec.py run     <project>            # tts -> record -> audio -> build
@@ -53,7 +53,7 @@ def main(argv):
 
     if cmd == 'dry':
         import run
-        return run.main([project, '--dry', '--all'] + rest)
+        return run.main([project, '--dry'] + rest)
 
     if cmd == 'tts':
         import tts
@@ -61,7 +61,7 @@ def main(argv):
 
     if cmd == 'record':
         import run
-        return run.main([project, '--all'] + rest)
+        return run.main([project] + rest)
 
     if cmd == 'audio':
         import audio
@@ -82,7 +82,7 @@ def main(argv):
         print('=== 1/4 narration', flush=True)
         tts.main([p])
         print('=== 2/4 record', flush=True)
-        run.main([p, '--all'] + ([r for r in rest if not r.startswith('-')] or []))
+        run.main([p] + [r for r in rest if not r.startswith('-')])
         print('=== 3/4 audio', flush=True)
         audio.main([p])
         print('=== 4/4 build', flush=True)

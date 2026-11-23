@@ -76,7 +76,7 @@ def main(argv):
         w, h = cfg.get('viewport', (1920, 1080))
         ctx = browser.new_context(viewport={'width': w, 'height': h},
                                   device_scale_factor=1,
-                                  locale=cfg.get('locale', 'zh-CN'),
+                                  locale=cfg.get('locale', 'en-US'),
                                   ignore_https_errors=True)
         root = (cfg.get('root_url') or '').strip()
         for name, page in targets:

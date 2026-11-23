@@ -12,7 +12,7 @@ pages, scenes and pacing are all data. Changing a project means editing YAML, no
 
 - The user wants a **demo video / walkthrough / screencast** of a web app.
 - The user wants narration, pacing, or masking applied to a recording.
-- The user wants to **maintain** an existing demorec project. Run `dry` before anything else.
+- The user wants to **maintain** an existing demorec project. Run `lint`, then `dry`, before anything else.
 
 Do **not** load this to edit an existing mp4, or to screen-capture a desktop app.
 
@@ -44,15 +44,20 @@ Start from `templates/` (see `templates/README.md`). Copy the three files and fi
 ## Commands
 
 ```
-python scripts/demorec.py lint   <project>          # static check, no browser needed
-python scripts/demorec.py probe  <project> [page]   # suggest brand mask boxes
-python scripts/demorec.py dry    <project>          # validate every selector, no recording
-python scripts/demorec.py tts    <project>          # narration -> timing.json
-python scripts/demorec.py record <project> [scene]  # record scenes
-python scripts/demorec.py audio  <project>          # align narration to recordings
-python scripts/demorec.py build  <project>          # mask + concat + mux -> out/
-python scripts/demorec.py run    <project>          # all four in order
+python scripts/demorec.py lint   <project>             # static check, no browser needed
+python scripts/demorec.py probe  <project> [page]      # suggest brand mask boxes
+python scripts/demorec.py dry    <project> [scene...]  # validate every selector, no recording
+python scripts/demorec.py tts    <project> [--force]   # narration -> timing.json
+python scripts/demorec.py record <project> [scene...]  # record scenes (--all for every scene)
+python scripts/demorec.py audio  <project>             # align narration to recordings
+python scripts/demorec.py build  <project>             # mask + concat + mux -> out/
+python scripts/demorec.py run    <project>             # tts -> record -> audio -> build
 ```
+
+`<project>` is any directory holding `demorec.yaml`, `pages.yaml` and `scenes.yaml`.
+Omitting it defaults to the current directory. `tts --force` re-synthesizes lines that
+already have audio; `record` without a scene name records the first scene unless
+`--all` is given.
 
 **Run `lint` first.** It needs no browser and takes milliseconds: it catches a
 typo'd element name, a `say` index past the last line, an unknown step, or a
@@ -66,13 +71,21 @@ broken selector fails in seconds instead of after a 10-minute recording.
 Narration is a list of lines; each step refers to a line by index:
 
 ```yaml
-steps:
-  - goto: home
-  - start
-  - click: {el: role_button, after: 1.1}   # el = name from pages.yaml
-  - say: 0                                 # block until line 0 has finished
-  - say: [2, 0.6]                          # ... plus 0.6s of breathing room
-  - stop
+scenes:
+  - id: s1_intro
+    title: Opening
+    page: home
+    narration:
+      - First narration line.
+      - Second narration line.
+      - Third narration line.
+    steps:
+      - goto: home
+      - start
+      - click: {el: primary_button, after: 1.1}   # el = name from pages.yaml
+      - say: 0                                   # block until line 0 has finished
+      - say: [2, 0.6]                            # ... plus 0.6 s of breathing room
+      - stop
 ```
 
 `say: N` is what keeps a scene maintainable: when a line is rewritten, the
@@ -102,6 +115,8 @@ Two mechanisms, both declared in `demorec.yaml`; the source site is never modifi
 1. **Playwright sync API stalls the screencast under `time.sleep`.** CDP frame events
    are dispatched only while Playwright owns the event loop. All internal waits go
    through `Stage._tick()`; do not add `time.sleep()` to a stage method.
+   Related: a static page emits no frames, so recording progress must be measured on
+   the wall clock, never from the last frame's timestamp.
 2. **Never concatenate mixed-format audio.** Mixing 24 kHz mono mp3 with 48 kHz stereo
    wav corrupts timestamps; scenes ended up ~6s instead of ~90s and the video was 30s
    out of sync. `audio.py` transcodes every clip to one format first.
@@ -109,11 +124,13 @@ Two mechanisms, both declared in `demorec.yaml`; the source site is never modifi
 
 ## Verify before delivering
 
-1. Metadata: duration, `1920x1080`, 30 fps, aac stereo.
-2. Extract 2-3 frames with `ffmpeg -ss T -frames:v 1` and **look at them**: mask covers
-   the brand, no watermark, no browser chrome, no system UI.
-3. Per-scene `video` vs `audio` duration from the `audio` step: keep the difference
-   under ~0.05s per scene.
+1. Metadata: duration, viewport size, fps, aac stereo.
+2. Extract 2-3 frames with `ffmpeg -ss T -frames:v 1` and **look at them**: the mask
+   covers the brand, no watermark, no browser chrome, no system UI.
+3. Per-scene `video` vs `audio` duration printed by the `audio` step: the difference
+   should be a few hundredths of a second, not tenths.
+4. Watch the last five seconds of the file. The tail is the part that a static page
+   most easily truncates.
 
 ## Notes
 

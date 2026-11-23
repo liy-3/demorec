@@ -1,15 +1,17 @@
-# 分镜剧本 —— 纯 YAML。
+# Storyboard — pure YAML.
 #
-# say: N  = 等到本幕第 N 句旁白念完（0 起）。旁白一改，节奏自动跟着变。
-# 这条是剧本能长期维护的关键：不要手写依赖语音的秒数。
+# say: N  = block until narration line N of this scene has finished (0-based).
+#           Rewriting a line re-flows the scene rhythm automatically.
+# This is what keeps a storyboard maintainable: never hard-code seconds that
+# depend on speech.
 
 scenes:
   - id: s1_intro
-    title: 开场
+    title: Opening
     page: home
     narration:
-      - 第一句旁白。
-      - 第二句旁白。
+      - First narration line.
+      - Second narration line.
     steps:
       - goto: home
       - start

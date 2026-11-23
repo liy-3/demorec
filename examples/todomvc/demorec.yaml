@@ -1,5 +1,6 @@
-# 公开示例：Playwright 官方 TodoMVC 演示站（无任何客户信息）
-# 用途：跑通全流程、对照写法。可直接 `demorec.py run <此目录>`。
+# Public example: the official Playwright TodoMVC demo site.
+# Purpose: exercise the whole pipeline and serve as a reference.
+# Run it with: python scripts/demorec.py run <this directory>
 
 project: TodoMVC demo
 
@@ -26,7 +27,7 @@ pacing:
   tail: 1.40
 
 mask:
-  boxes: []          # 公开站点，无需打码
+  boxes: []          # public site, nothing to mask
   color: "0xEEF2FA"
   hide_text: []
 
