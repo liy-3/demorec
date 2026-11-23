@@ -1,0 +1,21 @@
+# 分镜剧本 —— 纯 YAML。
+#
+# say: N  = 等到本幕第 N 句旁白念完（0 起）。旁白一改，节奏自动跟着变。
+# 这条是剧本能长期维护的关键：不要手写依赖语音的秒数。
+
+scenes:
+  - id: s1_intro
+    title: 开场
+    page: home
+    narration:
+      - 第一句旁白。
+      - 第二句旁白。
+    steps:
+      - goto: home
+      - start
+      - wait: 0.5
+      - move: {el: primary_button, dur: 0.6}
+      - say: 0
+      - click: {el: primary_button, hover: 0.35, after: 2.0}
+      - say: [1, 1.2]
+      - stop

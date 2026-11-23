@@ -1,0 +1,51 @@
+# 公开示例剧本 —— 纯 YAML。
+
+scenes:
+  - id: s1_add
+    title: Adding tasks
+    page: app
+    narration:
+      - This is the TodoMVC demo. A demo video is a script, not a manual screen capture.
+      - Type a task in the box and press Enter. The cursor, the zoom and the pacing all come from this file.
+      - Add a second task the same way. Nothing here is hand-edited afterwards.
+    steps:
+      - goto: app
+      - start
+      - wait: 0.5
+      - click: {el: new_todo, hover: 0.35, after: 0.8}
+      - type: Ship the release notes
+      - key: Enter
+      - say: 0
+      - click: {el: new_todo, hover: 0.3, after: 0.5}
+      - type: Review the migration plan
+      - key: Enter
+      - say: 1
+      - move: {el: todo_count, dur: 0.6}
+      - say: [2, 1.0]
+      - stop
+
+  - id: s2_filters
+    title: Filtering and clearing
+    page: app
+    narration:
+      - Each narration line is tied to a step, so re-recording after an edit is one command.
+      - Complete the first task, then look at the Active filter. The counter follows along.
+      - Completed shows only what is done, and clearing removes it for good.
+    steps:
+      - goto: app
+      - start
+      - wait: 0.5
+      - click: {el: new_todo, hover: 0.35, after: 0.6}
+      - type: Ship the release notes
+      - key: Enter
+      - sleep: 0.8
+      - click: {el: first_toggle, hover: 0.35, after: 1.2}
+      - say: 0
+      - click: {el: filter_active, hover: 0.35, after: 1.6}
+      - say: 1
+      - click: {el: filter_completed, hover: 0.35, after: 1.6}
+      - say: [2, 0.4]
+      - click: {el: clear_completed, hover: 0.35, after: 1.8}
+      - move: {el: new_todo, dur: 0.6}
+      - sleep: 1.0
+      - stop

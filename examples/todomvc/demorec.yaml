@@ -1,0 +1,40 @@
+# 公开示例：Playwright 官方 TodoMVC 演示站（无任何客户信息）
+# 用途：跑通全流程、对照写法。可直接 `demorec.py run <此目录>`。
+
+project: TodoMVC demo
+
+viewport: [1920, 1080]
+fps: 30
+jpeg_quality: 86
+locale: en-US
+
+browser_channel: chrome
+
+ready_timeout: 60
+ready_settle: 1.0
+ready_gone_text: ""
+
+find_timeout: 9
+
+voice:
+  name: en-US-AndrewNeural
+  rate: "+5%"
+
+pacing:
+  lead_in: 0.70
+  gap: 0.35
+  tail: 1.40
+
+mask:
+  boxes: []          # 公开站点，无需打码
+  color: "0xEEF2FA"
+  hide_text: []
+
+root_url: https://demo.playwright.dev/todomvc/
+
+build:
+  ffmpeg: auto
+  crf: 18
+  preset: medium
+  audio_bitrate: 192k
+  output_name: todomvc-demo.mp4

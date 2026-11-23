@@ -1,0 +1,46 @@
+# demorec project configuration — this is the file you edit per project.
+# Everything here has a default; start with project + root_url + a page.
+
+project: <项目名，会用于日志与输出>
+
+# 录制画面。改这里会同时作用于录制与成片，不需要碰任何脚本。
+viewport: [1920, 1080]
+fps: 30
+jpeg_quality: 86
+locale: zh-CN
+
+# 留空用 Playwright 自带 Chromium；装了 Chrome 可填 chrome，观感更接近真实。
+browser_channel: chrome
+
+# 页面就绪判定：正文短于此阈值、或仍含 ready_gone_text 时继续等待。
+# 有品牌加载动画的站点，把动画文字填进 ready_gone_text。
+ready_timeout: 110
+ready_settle: 1.2
+ready_gone_text: ""
+
+find_timeout: 9
+
+voice:
+  name: zh-CN-YunxiNeural
+  rate: "+8%"
+
+pacing:
+  lead_in: 0.80
+  gap: 0.38
+  tail: 1.60
+
+mask:
+  # [x, y, w, h] — 用 demorec.py probe 探测后人工确认；填充必须完全不透明
+  boxes: []
+  color: "0xEEF2FA"
+  # 随滚动漂移的水印，用运行时隐藏而不是固定打码框
+  hide_text: []
+
+root_url: https://example.com/app/
+
+build:
+  ffmpeg: auto
+  crf: 17
+  preset: medium
+  audio_bitrate: 192k
+  output_name: demo.mp4

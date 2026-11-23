@@ -1,0 +1,13 @@
+# 页面与语义元素名。
+#
+# scenes.yaml 只引用名字（el），不写选择器 —— 站点改版时只改这里，
+# 分镜剧本完全不用动。多写一条可兜底，按顺序尝试。
+
+pages:
+  home:
+    url: index.html
+    elements:
+      primary_button:
+        - 'button:has-text("开始") '
+        - 'button[class*="primary"]'
+      search_input: 'input[placeholder*="搜索"]'

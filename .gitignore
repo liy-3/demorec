@@ -1,0 +1,12 @@
+rec/
+frames/
+shots/
+tts/
+out/
+timing.json
+__pycache__/
+*.pyc
+.DS_Store
+
+# 交接文档：含内部项目背景，不随仓库公开
+HANDOFF.md

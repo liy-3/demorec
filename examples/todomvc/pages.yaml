@@ -1,0 +1,15 @@
+# 语义元素名 —— scenes.yaml 只引用这些名字。
+
+pages:
+  app:
+    url: ""                    # root_url 本身就是入口
+    elements:
+      new_todo: 'input[placeholder="What needs to be done?"]'
+      first_toggle: '.todo-list li:first-child .toggle'
+      filter_active: 'a[href="#/active"]'
+      filter_completed: 'a[href="#/completed"]'
+      filter_all:
+        - 'a[href="#/"]:visible'
+        - '.filters li:first-child a'
+      clear_completed: '.clear-completed'
+      todo_count: '.todo-count'

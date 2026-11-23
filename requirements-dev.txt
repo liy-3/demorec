@@ -1,0 +1,2 @@
+pytest>=8.0
+# runtime deps are not needed for the test suite
